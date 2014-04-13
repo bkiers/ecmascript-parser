@@ -166,8 +166,6 @@ initialiserNoIn
 ///     ;
 emptyStatement
  : SemiColon
- | LineTerminator
- | MultiLineComment
  ;
 
 /// ExpressionStatement :
@@ -180,7 +178,7 @@ expressionStatement
 ///     if ( Expression ) Statement else Statement
 ///     if ( Expression ) Statement
 ifStatement
- : If '(' expression ')' statement Else statement
+ : If '(' expression ')' statement ( Else statement )?
  ;
 
 /// IterationStatement :
@@ -692,7 +690,7 @@ assignmentExpression
 assignmentExpressionNoIn
  : conditionalExpressionNoIn
  | leftHandSideExpression '=' assignmentExpressionNoIn
- | leftHandSideExpression assignmentOperator assignmentExpression
+ | leftHandSideExpression assignmentOperator assignmentExpressionNoIn
  ;
 
 /// AssignmentOperator : one of
@@ -809,6 +807,7 @@ setter
  : {_input.LT(1).getText().startsWith("set")}? Identifier
  ;
 
+// TODO read MultiLineComment and LineTerminator from HIDDEN channel
 eos
  : SemiColon
  | EOF
@@ -825,7 +824,7 @@ RegularExpressionLiteral
 
 /// 7.3 Line Terminators
 LineTerminator
- : [\r\n\u2028\u2029]
+ : [\r\n\u2028\u2029] -> channel(HIDDEN)
  ;
 
 OpenBracket                : '[';
@@ -970,11 +969,11 @@ WhiteSpaces
 
 /// 7.4 Comments
 MultiLineComment
- : '/*' .*? '*/' // Don not hide or skip this: it is needed for "semi colon insertion".
+ : '/*' .*? '*/' -> channel(HIDDEN)
  ;
 
 SingleLineComment
- : '//' ~[\r\n\u2028\u2029]* -> skip
+ : '//' ~[\r\n\u2028\u2029]* -> channel(HIDDEN)
  ;
 
 UnexpectedCharacter
