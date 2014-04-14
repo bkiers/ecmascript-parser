@@ -1,6 +1,7 @@
 package nl.bigo.ecmascriptparser;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.BufferedTokenStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -10,7 +11,7 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
 
-        ECMAScriptLexer lexer = new ECMAScriptLexer(new ANTLRInputStream("/((a)|(ab))((c)|(bc))/.exec(\"abc\")"));
+        ECMAScriptLexer lexer = new ECMAScriptLexer(new ANTLRInputStream("try { doThat(); } catch (e) { say(e) } finally { cleanup(stuff) }"));
         ECMAScriptParser parser = new ECMAScriptParser(new CommonTokenStream(lexer));
 
         ParseTree tree = parser.program();

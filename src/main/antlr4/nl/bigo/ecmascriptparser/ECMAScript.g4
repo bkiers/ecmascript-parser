@@ -2,6 +2,21 @@ grammar ECMAScript;
 
 // http://www.ecma-international.org/ecma-262/5.1/
 
+@parser::members {
+  
+  private boolean lineTerminatorAhead() {
+    int possibleIndexEosToken = this.getCurrentToken().getTokenIndex() - 1;
+    Token ahead = _input.get(possibleIndexEosToken);
+    
+    String text = ahead.getText();
+    int type = ahead.getType();
+        
+    return ahead.getChannel() == Lexer.HIDDEN && 
+        ((type == MultiLineComment && (text.contains("\r") || text.contains("\n"))) || 
+        type == LineTerminator);
+  }                                   
+}
+
 @lexer::members {
                  
   private boolean strictMode = true;                 
@@ -811,8 +826,7 @@ setter
 eos
  : SemiColon
  | EOF
- | LineTerminator
- | {_input.LT(1).getText().contains("\r") || _input.LT(1).getText().contains("\n")}? MultiLineComment
+ | {lineTerminatorAhead()}?
  | {_input.LT(1).getType() == OpenBrace}?
  ;
 
