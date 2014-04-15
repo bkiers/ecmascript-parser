@@ -513,54 +513,54 @@ expression
  ;
 
 singleExpression
- : Function Identifier? '(' formalParameterList? ')' '{' functionBody '}'
- | singleExpression '[' expression ']'
- | singleExpression '.' identifierName
- | singleExpression arguments
- | New singleExpression arguments?
- | singleExpression {!here(LineTerminator)}? '++'
- | singleExpression {!here(LineTerminator)}? '--'
- | Delete singleExpression
- | Void singleExpression
- | Typeof singleExpression
- | '++' singleExpression
- | '--' singleExpression
- | '+' singleExpression
- | '-' singleExpression
- | '~' singleExpression
- | '!' singleExpression
- | singleExpression '*' singleExpression
- | singleExpression '/' singleExpression
- | singleExpression '%' singleExpression
- | singleExpression '+' singleExpression
- | singleExpression '-' singleExpression
- | singleExpression '<<' singleExpression
- | singleExpression '>>' singleExpression
- | singleExpression '>>>' singleExpression
- | singleExpression '<' singleExpression
- | singleExpression '>' singleExpression
- | singleExpression '<=' singleExpression
- | singleExpression '>=' singleExpression
- | singleExpression Instanceof singleExpression
- | singleExpression In singleExpression
- | singleExpression '==' singleExpression
- | singleExpression '!=' singleExpression
- | singleExpression '===' singleExpression
- | singleExpression '!==' singleExpression
- | singleExpression '&' singleExpression
- | singleExpression '^' singleExpression
- | singleExpression '|' singleExpression
- | singleExpression '&&' singleExpression
- | singleExpression '||' singleExpression
- | singleExpression '?' singleExpression ':' singleExpression
- | singleExpression '=' expression
- | singleExpression assignmentOperator expression
- | This
- | Identifier   
- | literal
- | arrayLiteral
- | objectLiteral
- | '(' expression ')'
+ : Function Identifier? '(' formalParameterList? ')' '{' functionBody '}' #FunctionExpression
+ | singleExpression '[' expression ']'                                    #MemberIndexExpression
+ | singleExpression '.' identifierName                                    #MemberDotExpression
+ | singleExpression arguments                                             #ArgumentsExpression
+ | New singleExpression arguments?                                        #NewExpression
+ | singleExpression {!here(LineTerminator)}? '++'                         #PostIncrementExpression
+ | singleExpression {!here(LineTerminator)}? '--'                         #PostDecreaseExpression
+ | Delete singleExpression                                                #DeleteExpression
+ | Void singleExpression                                                  #VoidExpression
+ | Typeof singleExpression                                                #TypeofExpression
+ | '++' singleExpression                                                  #PreIncrementExpression
+ | '--' singleExpression                                                  #PreDecreaseExpression
+ | '+' singleExpression                                                   #UnaryPlusExpression
+ | '-' singleExpression                                                   #UnaryMinusExpression
+ | '~' singleExpression                                                   #BitNotExpression
+ | '!' singleExpression                                                   #NotExpression
+ | singleExpression '*' singleExpression                                  #MultiplyExpression
+ | singleExpression '/' singleExpression                                  #DivideExpression
+ | singleExpression '%' singleExpression                                  #ModulusExpression
+ | singleExpression '+' singleExpression                                  #AddExpression
+ | singleExpression '-' singleExpression                                  #SubtractExpression
+ | singleExpression '<<' singleExpression                                 #LeftShiftArithmeticExpression
+ | singleExpression '>>' singleExpression                                 #RightShiftArithmeticExpression
+ | singleExpression '>>>' singleExpression                                #RightShiftLogicalExpression
+ | singleExpression '<' singleExpression                                  #LessThanExpression
+ | singleExpression '>' singleExpression                                  #GreaterThanExpression
+ | singleExpression '<=' singleExpression                                 #LessThanEqualsExpression
+ | singleExpression '>=' singleExpression                                 #GreaterThanEqualsExpression
+ | singleExpression Instanceof singleExpression                           #InstanceofExpression
+ | singleExpression In singleExpression                                   #InExpression
+ | singleExpression '==' singleExpression                                 #EqualsExpression
+ | singleExpression '!=' singleExpression                                 #NotEqualsExpression
+ | singleExpression '===' singleExpression                                #IdentityEqualsExpression
+ | singleExpression '!==' singleExpression                                #IdentityNotEqualsExpression
+ | singleExpression '&' singleExpression                                  #BitAndExpression
+ | singleExpression '^' singleExpression                                  #BitXOrExpression
+ | singleExpression '|' singleExpression                                  #BitOrExpression
+ | singleExpression '&&' singleExpression                                 #AndExpression
+ | singleExpression '||' singleExpression                                 #OrExpression
+ | singleExpression '?' singleExpression ':' singleExpression             #TernaryExpression
+ | singleExpression '=' expression                                        #AssignmentExpression
+ | singleExpression assignmentOperator expression                         #AssignmentOperatorExpression
+ | This                                                                   #ThisExpression
+ | Identifier                                                             #IdentifierExpression
+ | literal                                                                #LiteralExpression
+ | arrayLiteral                                                           #ArrayLiteralExpression
+ | objectLiteral                                                          #ObjectLiteralExpression
+ | '(' expression ')'                                                     #ParenthesizedExpression
  ;
 
 /// AssignmentOperator : one of
