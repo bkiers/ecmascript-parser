@@ -4,6 +4,13 @@ grammar ECMAScript;
 
 @parser::members {
   
+  private boolean here(int type) {
+    int possibleIndexEosToken = this.getCurrentToken().getTokenIndex() - 1;
+    Token ahead = _input.get(possibleIndexEosToken);
+    
+    return ahead.getChannel() == Lexer.HIDDEN && ahead.getType() == type;
+  }
+  
   private boolean lineTerminatorAhead() {
     int possibleIndexEosToken = this.getCurrentToken().getTokenIndex() - 1;
     Token ahead = _input.get(possibleIndexEosToken);
@@ -146,35 +153,16 @@ variableDeclarationList
  : variableDeclaration ( ',' variableDeclaration )*
  ;
 
-/// VariableDeclarationListNoIn :
-///     VariableDeclarationNoIn
-///     VariableDeclarationListNoIn , VariableDeclarationNoIn
-variableDeclarationListNoIn
- : variableDeclarationNoIn ( ',' variableDeclarationNoIn )*
- ;
-
 /// VariableDeclaration :
 ///     Identifier Initialiser?
 variableDeclaration
  : Identifier initialiser?
  ;
 
-/// VariableDeclarationNoIn :
-///     Identifier InitialiserNoIn?
-variableDeclarationNoIn
- : Identifier initialiserNoIn?
- ;
-
 /// Initialiser :
 ///     = AssignmentExpression
 initialiser
- : '=' assignmentExpression
- ;
-
-/// InitialiserNoIn :
-///     = AssignmentExpressionNoIn
-initialiserNoIn
- : '=' assignmentExpressionNoIn
+ : '=' singleExpression
  ;
 
 /// EmptyStatement :
@@ -199,17 +187,17 @@ ifStatement
 /// IterationStatement :
 ///     do Statement while ( Expression );
 ///     while ( Expression ) Statement
-///     for ( ExpressionNoIn? ; Expression? ; Expression? ) Statement
-///     for ( var VariableDeclarationListNoIn ; Expression? ; Expression? ) Statement
+///     for ( Expression? ; Expression? ; Expression? ) Statement
+///     for ( var VariableDeclarationList ; Expression? ; Expression? ) Statement
 ///     for ( LeftHandSideExpression in Expression ) Statement
-///     for ( var VariableDeclarationNoIn in Expression ) Statement
+///     for ( var VariableDeclaration in Expression ) Statement
 iterationStatement
  : Do statement While '(' expression ')' eos
  | While '(' expression ')' statement
- | For '(' expressionNoIn? ';' expression? ';' expression? ')' statement
- | For '(' Var variableDeclarationListNoIn ';' expression? ';' expression? ')' statement
- | For '(' leftHandSideExpression In expression ')' statement
- | For '(' Var variableDeclarationNoIn In expression ')' statement
+ | For '(' expression? ';' expression? ';' expression? ')' statement
+ | For '(' Var variableDeclarationList ';' expression? ';' expression? ')' statement
+ | For '(' singleExpression In expression ')' statement
+ | For '(' Var variableDeclaration In expression ')' statement
  ;
 
 /// ContinueStatement :
@@ -318,12 +306,6 @@ functionDeclaration
  : Function Identifier '(' formalParameterList? ')' '{' functionBody '}'
  ;
 
-/// FunctionExpression :
-///     function Identifier? ( FormalParameterList? ) { FunctionBody }
-functionExpression
- : Function Identifier? '(' formalParameterList? ')' '{' functionBody '}'
- ;
-
 /// FormalParameterList :
 ///     Identifier
 ///     FormalParameterList , Identifier
@@ -335,23 +317,6 @@ formalParameterList
 ///     SourceElements?
 functionBody
  : sourceElements?
- ;
-
-/// PrimaryExpression :
-///     this
-///     Identifier
-///     Literal
-///     ArrayLiteral
-///     ObjectLiteral
-///     ( Expression )
-primaryExpression
- : ( This
-   | Identifier
-   )
- | literal
- | arrayLiteral
- | objectLiteral
- | '(' expression ')'
  ;
     
 /// ArrayLiteral :
@@ -367,7 +332,7 @@ arrayLiteral
 ///     Elision? AssignmentExpression
 ///     ElementList , Elision? AssignmentExpression
 elementList
- : elision? assignmentExpression ( ',' elision? assignmentExpression )*
+ : elision? singleExpression ( ',' elision? singleExpression )*
  ;
 
 /// Elision :
@@ -397,7 +362,7 @@ propertyNameAndValueList
 ///     get PropertyName ( ) { FunctionBody }
 ///     set PropertyName ( PropertySetParameterList ) { FunctionBody }
 propertyAssignment
- : propertyName ':' assignmentExpression
+ : propertyName ':' singleExpression
  | getter '(' ')' '{' functionBody '}'
  | setter '(' propertySetParameterList ')' '{' functionBody '}'
  ;           
@@ -417,41 +382,7 @@ propertyName
 propertySetParameterList
  : Identifier
  ;
-    
-/// MemberExpression :
-///     PrimaryExpression
-///     FunctionExpression
-///     MemberExpression [ Expression ]
-///     MemberExpression . IdentifierName
-///     new MemberExpression Arguments
-memberExpression
- : primaryExpression
- | functionExpression
- | memberExpression '[' expression ']'
- | memberExpression '.' identifierName
- | New memberExpression arguments
- ;
-    
-/// NewExpression :
-///     MemberExpression
-///     new NewExpression
-newExpression
- : memberExpression
- | New newExpression
- ;
-    
-/// CallExpression :
-///     MemberExpression Arguments
-///     CallExpression Arguments
-///     CallExpression [ Expression ]
-///     CallExpression . IdentifierName
-callExpression
- : callExpression arguments
- | callExpression '[' expression ']'
- | callExpression '.' identifierName
- | memberExpression arguments
- ;
-    
+
 /// Arguments :
 ///     ( )
 ///     ( ArgumentList )
@@ -463,27 +394,75 @@ arguments
 ///     AssignmentExpression
 ///     ArgumentList , AssignmentExpression
 argumentList
- : assignmentExpression ( ',' assignmentExpression )*
+ : singleExpression ( ',' singleExpression )*
  ;
     
-/// LeftHandSideExpression :
-///     NewExpression
-///     CallExpression
-leftHandSideExpression
- : newExpression
- | callExpression
- ;
-    
-/// PostfixExpression :
-///     LeftHandSideExpression
-///     LeftHandSideExpression [no LineTerminator here] ++
-///     LeftHandSideExpression [no LineTerminator here] --
-postfixExpression
- : leftHandSideExpression
- | '++' leftHandSideExpression
- | '--' leftHandSideExpression
- ;
-    
+/// Expression :
+///     AssignmentExpression
+///     Expression , AssignmentExpression
+///
+/// AssignmentExpression :
+///     ConditionalExpression
+///     LeftHandSideExpression = AssignmentExpression
+///     LeftHandSideExpression AssignmentOperator AssignmentExpression
+///
+/// ConditionalExpression :
+///     LogicalORExpression
+///     LogicalORExpression ? AssignmentExpression : AssignmentExpression
+///
+/// LogicalORExpression :
+///     LogicalANDExpression
+///     LogicalORExpression || LogicalANDExpression
+///
+/// LogicalANDExpression :
+///     BitwiseORExpression
+///     LogicalANDExpression && BitwiseORExpression
+///
+/// BitwiseORExpression :
+///     BitwiseXORExpression
+///     BitwiseORExpression | BitwiseXORExpression
+///
+/// BitwiseXORExpression :
+///     BitwiseANDExpression
+///     BitwiseXORExpression ^ BitwiseANDExpression
+///
+/// BitwiseANDExpression :
+///     EqualityExpression
+///     BitwiseANDExpression & EqualityExpression
+///
+/// EqualityExpression :
+///     RelationalExpression
+///     EqualityExpression == RelationalExpression
+///     EqualityExpression != RelationalExpression
+///     EqualityExpression === RelationalExpression
+///     EqualityExpression !== RelationalExpression
+///
+/// RelationalExpression :
+///     ShiftExpression
+///     RelationalExpression < ShiftExpression
+///     RelationalExpression > ShiftExpression
+///     RelationalExpression <= ShiftExpression
+///     RelationalExpression >= ShiftExpression
+///     RelationalExpression instanceof ShiftExpression 
+///     RelationalExpression in ShiftExpression
+///
+/// ShiftExpression :
+///     AdditiveExpression
+///     ShiftExpression << AdditiveExpression
+///     ShiftExpression >> AdditiveExpression
+///     ShiftExpression >>> AdditiveExpression
+/// 
+/// AdditiveExpression :
+///     MultiplicativeExpression
+///     AdditiveExpression + MultiplicativeExpression
+///     AdditiveExpression - MultiplicativeExpression
+///
+/// MultiplicativeExpression :
+///     UnaryExpression
+///     MultiplicativeExpression * UnaryExpression
+///     MultiplicativeExpression / UnaryExpression
+///     MultiplicativeExpression % UnaryExpression
+///
 /// UnaryExpression :
 ///     PostfixExpression
 ///     delete UnaryExpression
@@ -495,217 +474,97 @@ postfixExpression
 ///     - UnaryExpression
 ///     ~ UnaryExpression
 ///     ! UnaryExpression
-unaryExpression
- : postfixExpression
- | Delete unaryExpression
- | Void unaryExpression
- | Typeof unaryExpression
- | '++' unaryExpression
- | '--' unaryExpression
- | '+' unaryExpression
- | '-' unaryExpression
- | '~' unaryExpression
- | '!' unaryExpression
- ;
-    
-/// MultiplicativeExpression :
-///     UnaryExpression
-///     MultiplicativeExpression * UnaryExpression
-///     MultiplicativeExpression / UnaryExpression
-///     MultiplicativeExpression % UnaryExpression
-multiplicativeExpression
- : unaryExpression ( '*' unaryExpression
-                   | '/' unaryExpression
-                   | '%' unaryExpression
-                   )*
- ;
-    
-/// AdditiveExpression :
-///     MultiplicativeExpression
-///     AdditiveExpression + MultiplicativeExpression
-///     AdditiveExpression - MultiplicativeExpression
-additiveExpression
- : multiplicativeExpression ( '+' multiplicativeExpression
-                            | '-' multiplicativeExpression
-                            )*
- ;
-    
-/// ShiftExpression :
-///     AdditiveExpression
-///     ShiftExpression << AdditiveExpression
-///     ShiftExpression >> AdditiveExpression
-///     ShiftExpression >>> AdditiveExpression
-shiftExpression
- : additiveExpression ( '<<' additiveExpression
-                      | '>>' additiveExpression
-                      | '>>>' additiveExpression
-                      )*
- ;
-    
-/// RelationalExpression :
-///     ShiftExpression
-///     RelationalExpression < ShiftExpression
-///     RelationalExpression > ShiftExpression
-///     RelationalExpression <= ShiftExpression
-///     RelationalExpression >= ShiftExpression
-///     RelationalExpression instanceof ShiftExpression
-///     RelationalExpression in ShiftExpression
-relationalExpression
- : shiftExpression ( '<' shiftExpression
-                   | '>' shiftExpression
-                   | '<=' shiftExpression
-                   | '>=' shiftExpression
-                   | Instanceof shiftExpression
-                   | In shiftExpression
-                   )*
- ;
-    
-/// RelationalExpressionNoIn :
-///     ShiftExpression
-///     RelationalExpressionNoIn < ShiftExpression
-///     RelationalExpressionNoIn > ShiftExpression
-///     RelationalExpressionNoIn <= ShiftExpression
-///     RelationalExpressionNoIn >= ShiftExpression
-///     RelationalExpressionNoIn instanceof ShiftExpression
-relationalExpressionNoIn
- : shiftExpression ( '<' shiftExpression
-                   | '>' shiftExpression
-                   | '<=' shiftExpression
-                   | '>=' shiftExpression
-                   | Instanceof shiftExpression
-                   )*
- ;
-    
-/// EqualityExpression :
-///     RelationalExpression
-///     EqualityExpression == RelationalExpression
-///     EqualityExpression != RelationalExpression
-///     EqualityExpression === RelationalExpression
-///     EqualityExpression !== RelationalExpression
-equalityExpression
- : relationalExpression ( '==' relationalExpression
-                        | '!=' relationalExpression
-                        | '===' relationalExpression
-                        | '!==' relationalExpression
-                        )*
- ;
-    
-/// EqualityExpressionNoIn :
-///     RelationalExpressionNoIn
-///     EqualityExpressionNoIn == RelationalExpressionNoIn
-///     EqualityExpressionNoIn != RelationalExpressionNoIn
-///     EqualityExpressionNoIn === RelationalExpressionNoIn
-///     EqualityExpressionNoIn !== RelationalExpressionNoIn
-equalityExpressionNoIn
- : relationalExpressionNoIn ( '==' relationalExpressionNoIn
-                            | '!=' relationalExpressionNoIn
-                            | '===' relationalExpressionNoIn
-                            | '!==' relationalExpressionNoIn
-                            )*
- ;
-    
-/// BitwiseANDExpression :
-///     EqualityExpression
-///     BitwiseANDExpression & EqualityExpression
-bitwiseANDExpression
- : equalityExpression ( '&' equalityExpression )*
- ;
-    
-/// BitwiseANDExpressionNoIn :
-///     EqualityExpressionNoIn
-///     BitwiseANDExpressionNoIn & EqualityExpressionNoIn
-bitwiseANDExpressionNoIn
- : equalityExpressionNoIn ( '&' equalityExpressionNoIn )*
- ;
-    
-/// BitwiseXORExpression :
-///     BitwiseANDExpression
-///     BitwiseXORExpression ^ BitwiseANDExpression
-bitwiseXORExpression
- : bitwiseANDExpression ( '^' bitwiseANDExpression )*
- ;
-    
-/// BitwiseXORExpressionNoIn :
-///     BitwiseANDExpressionNoIn
-///     BitwiseXORExpressionNoIn ^ BitwiseANDExpressionNoIn
-bitwiseXORExpressionNoIn
- : bitwiseANDExpressionNoIn ( '^' bitwiseANDExpressionNoIn )*
+///
+/// PostfixExpression :
+///     LeftHandSideExpression
+///     LeftHandSideExpression [no LineTerminator here] ++
+///     LeftHandSideExpression [no LineTerminator here] --
+///
+/// LeftHandSideExpression :
+///     NewExpression
+///     CallExpression
+///
+/// CallExpression :
+///     MemberExpression Arguments
+///     CallExpression Arguments
+///     CallExpression [ Expression ]
+///     CallExpression . IdentifierName
+///
+/// NewExpression :
+///     MemberExpression
+///     new NewExpression
+///
+/// MemberExpression :
+///     PrimaryExpression
+///     FunctionExpression
+///     MemberExpression [ Expression ]
+///     MemberExpression . IdentifierName
+///     new MemberExpression Arguments
+///
+/// FunctionExpression :
+///     function Identifier? ( FormalParameterList? ) { FunctionBody }
+///
+/// PrimaryExpression :
+///     this
+///     Identifier
+///     Literal
+///     ArrayLiteral
+///     ObjectLiteral
+///     ( Expression )
+///
+expression
+ : singleExpression+
  ;
 
-/// BitwiseORExpression :
-///     BitwiseXORExpression
-///     BitwiseORExpression | BitwiseXORExpression
-bitwiseORExpression
- : bitwiseXORExpression ( '|' bitwiseXORExpression )*
- ;
-
-/// BitwiseORExpressionNoIn :
-///     BitwiseXORExpressionNoIn
-///     BitwiseORExpressionNoIn | BitwiseXORExpressionNoIn
-bitwiseORExpressionNoIn
- : bitwiseXORExpressionNoIn ( '|' bitwiseXORExpressionNoIn )*
- ;
-
-/// LogicalANDExpression :
-///     BitwiseORExpression
-///     LogicalANDExpression && BitwiseORExpression
-logicalANDExpression
- : bitwiseORExpression ( '&&' bitwiseORExpression )*
- ;
-
-/// LogicalANDExpressionNoIn :
-///     BitwiseORExpressionNoIn
-///     LogicalANDExpressionNoIn && BitwiseORExpressionNoIn
-logicalANDExpressionNoIn
- : bitwiseORExpressionNoIn ( '&&' bitwiseORExpressionNoIn )*
- ;
-
-/// LogicalORExpression :
-///     LogicalANDExpression
-///     LogicalORExpression || LogicalANDExpression
-logicalORExpression
- : logicalANDExpression ( '||' logicalANDExpression )*
- ;
-
-/// LogicalORExpressionNoIn :
-///     LogicalANDExpressionNoIn
-///     LogicalORExpressionNoIn || LogicalANDExpressionNoIn
-logicalORExpressionNoIn
- : logicalANDExpressionNoIn ( '||' logicalANDExpressionNoIn )*
- ;
-
-/// ConditionalExpression :
-///     LogicalORExpression
-///     LogicalORExpression ? AssignmentExpression : AssignmentExpression
-conditionalExpression
- : logicalORExpression  ( '?' assignmentExpression ':' assignmentExpression )?
- ;
-
-/// ConditionalExpressionNoIn :
-///     LogicalORExpressionNoIn
-///     LogicalORExpressionNoIn ? AssignmentExpression : AssignmentExpressionNoIn
-conditionalExpressionNoIn
- : logicalORExpressionNoIn ( '?' assignmentExpression ':' assignmentExpressionNoIn )?
- ;
-
-/// AssignmentExpression :
-///     ConditionalExpression
-///     LeftHandSideExpression = AssignmentExpression
-///     LeftHandSideExpression AssignmentOperator AssignmentExpression
-assignmentExpression
- : conditionalExpression
- | leftHandSideExpression '=' assignmentExpression
- | leftHandSideExpression assignmentOperator assignmentExpression
- ;
-
-/// AssignmentExpressionNoIn :
-///     ConditionalExpressionNoIn
-///     LeftHandSideExpression = AssignmentExpressionNoIn
-///     LeftHandSideExpression AssignmentOperator AssignmentExpressionNoIn
-assignmentExpressionNoIn
- : conditionalExpressionNoIn
- | leftHandSideExpression '=' assignmentExpressionNoIn
- | leftHandSideExpression assignmentOperator assignmentExpressionNoIn
+singleExpression
+ : Function Identifier? '(' formalParameterList? ')' '{' functionBody '}'
+ | singleExpression '[' expression ']'
+ | singleExpression '.' identifierName
+ | singleExpression arguments
+ | New singleExpression arguments?
+ | singleExpression {!here(LineTerminator)}? '++'
+ | singleExpression {!here(LineTerminator)}? '--'
+ | Delete singleExpression
+ | Void singleExpression
+ | Typeof singleExpression
+ | '++' singleExpression
+ | '--' singleExpression
+ | '+' singleExpression
+ | '-' singleExpression
+ | '~' singleExpression
+ | '!' singleExpression
+ | singleExpression '*' singleExpression
+ | singleExpression '/' singleExpression
+ | singleExpression '%' singleExpression
+ | singleExpression '+' singleExpression
+ | singleExpression '-' singleExpression
+ | singleExpression '<<' singleExpression
+ | singleExpression '>>' singleExpression
+ | singleExpression '>>>' singleExpression
+ | singleExpression '<' singleExpression
+ | singleExpression '>' singleExpression
+ | singleExpression '<=' singleExpression
+ | singleExpression '>=' singleExpression
+ | singleExpression Instanceof singleExpression
+ | singleExpression In singleExpression
+ | singleExpression '==' singleExpression
+ | singleExpression '!=' singleExpression
+ | singleExpression '===' singleExpression
+ | singleExpression '!==' singleExpression
+ | singleExpression '&' singleExpression
+ | singleExpression '^' singleExpression
+ | singleExpression '|' singleExpression
+ | singleExpression '&&' singleExpression
+ | singleExpression '||' singleExpression
+ | singleExpression '?' singleExpression ':' singleExpression
+ | singleExpression '=' expression
+ | singleExpression assignmentOperator expression
+ | This
+ | Identifier   
+ | literal
+ | arrayLiteral
+ | objectLiteral
+ | '(' expression ')'
  ;
 
 /// AssignmentOperator : one of
@@ -722,20 +581,6 @@ assignmentOperator
  | '&=' 
  | '^=' 
  | '|='
- ;
-    
-/// Expression :
-///     AssignmentExpression
-///     Expression , AssignmentExpression
-expression
- : assignmentExpression+
- ;
-    
-/// ExpressionNoIn :
-///     AssignmentExpressionNoIn
-///     ExpressionNoIn , AssignmentExpressionNoIn
-expressionNoIn
- : assignmentExpressionNoIn+
  ;
 
 literal
