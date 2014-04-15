@@ -68,10 +68,6 @@ grammar ECMAScript;
   }
 }
 
-anyToken
- : token=.
- ;
-
 /// Program :
 ///     SourceElements?
 program
