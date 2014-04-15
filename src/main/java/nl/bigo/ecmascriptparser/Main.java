@@ -1,11 +1,8 @@
 package nl.bigo.ecmascriptparser;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.BufferedTokenStream;
 import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
-import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,8 +63,9 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
 
-        ECMAScriptLexer lexer = new ECMAScriptLexer(new ANTLRInputStream("(function(){ return/* Multiline\nComment */x })"));
+        ECMAScriptLexer lexer = new ECMAScriptLexer(new ANTLRInputStream("a = b\n/ hi / ;g.exec(c).map(d);"));
         ECMAScriptParser parser = new ECMAScriptParser(new CommonTokenStream(lexer));
+        parser.addErrorListener(new DescriptiveBailErrorListener());
 
         ParseTree tree = parser.program();
         System.out.println(toStringASCII(tree));
