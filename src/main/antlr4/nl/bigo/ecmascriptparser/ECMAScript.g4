@@ -69,7 +69,7 @@ grammar ECMAScript;
 }
 
 anyToken
- : .
+ : token=.
  ;
 
 /// Program :
