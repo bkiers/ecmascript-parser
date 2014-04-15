@@ -39,6 +39,9 @@ public class Main {
             else {
                 tree = childStack.remove(0);
 
+                String node = tree.getClass().getSimpleName().replace("Context", "");
+                node = Character.toLowerCase(node.charAt(0)) + node.substring(1);
+
                 String indent = "";
 
                 for (int i = 0; i < childListStack.size() - 1; i++) {
@@ -47,7 +50,7 @@ public class Main {
 
                 builder.append(indent)
                         .append(childStack.isEmpty() ? "'- " : "|- ")
-                        .append(tree.getText())
+                        .append(node.startsWith("terminal") ? tree.getText() : node)
                         .append("\n");
 
                 if (tree.getChildCount() > 0) {
@@ -63,7 +66,7 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
 
-        ECMAScriptLexer lexer = new ECMAScriptLexer(new ANTLRInputStream("{ x\n++y }"));
+        ECMAScriptLexer lexer = new ECMAScriptLexer(new ANTLRInputStream("(function(){ return/* Multiline\nComment */x })"));
         ECMAScriptParser parser = new ECMAScriptParser(new CommonTokenStream(lexer));
 
         ParseTree tree = parser.program();

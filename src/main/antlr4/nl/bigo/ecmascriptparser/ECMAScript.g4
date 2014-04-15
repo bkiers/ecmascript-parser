@@ -672,7 +672,7 @@ eos
  : SemiColon
  | EOF
  | {lineTerminatorAhead()}?
- | {_input.LT(1).getType() == OpenBrace}?
+ | {_input.LT(1).getType() == CloseBrace}?
  ;
 
 /// RegularExpressionLiteral ::
