@@ -21,15 +21,23 @@ public class ECMAScriptLexerTest {
      *
      * @param source
      *         a single token.
+     * @param strictMode
+     *         if the parser should parse in strict mode or not.
      *
      * @return the type of the token {@code source} represents.
      */
     private Integer tokenize(String source, boolean strictMode) {
+
         ECMAScriptLexer lexer = new ECMAScriptLexer(new ANTLRInputStream(source));
         lexer.setStrictMode(strictMode);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
+
+        // Get the first token.
         Token token = tokens.LT(1);
+
+        // Make sure the second token is EOF.
         assertThat(tokens.LT(2).getType(), is(EOF));
+
         return token == null ? null : token.getType();
     }
 
@@ -83,7 +91,6 @@ public class ECMAScriptLexerTest {
                 new Object[]{"a123", Identifier},
                 new Object[]{"ಠ_ಠ", Identifier},
                 new Object[]{"\\u006C\\u006F\\u006C\\u0077\\u0061\\u0074", Identifier},
-                new Object[]{"@", UnexpectedCharacter},
         });
     }
 

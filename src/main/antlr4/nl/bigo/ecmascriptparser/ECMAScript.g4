@@ -509,7 +509,7 @@ argumentList
 ///     ( Expression )
 ///
 expression
- : singleExpression+
+ : singleExpression ( ',' singleExpression )*
  ;
 
 singleExpression
@@ -663,12 +663,15 @@ setter
  : {_input.LT(1).getText().startsWith("set")}? Identifier
  ;
 
-// TODO read MultiLineComment and LineTerminator from HIDDEN channel
 eos
  : SemiColon
  | EOF
  | {lineTerminatorAhead()}?
  | {_input.LT(1).getType() == CloseBrace}?
+ ;
+
+eof
+ : EOF
  ;
 
 /// RegularExpressionLiteral ::
