@@ -414,14 +414,21 @@ public class ECMAScriptParserTest {
     // functionBody
     //  : sourceElements?
     //  ;
-    //
-    // arrayLiteral
-    //  : '[' elementList? ','? elision? ']'
-    //  ;
     @Test
     public void functionBodyTest() throws Exception {
 
         final String rule = "functionBody";
+
+        this.test(new String[]{}, rule);
+    }
+
+    // arrayLiteral
+    //  : '[' elementList? ','? elision? ']'
+    //  ;
+    @Test
+    public void arrayLiteralTest() throws Exception {
+
+        final String rule = "arrayLiteral";
 
         this.test(new String[]{}, rule);
     }
@@ -462,22 +469,6 @@ public class ECMAScriptParserTest {
     // propertyNameAndValueList
     //  : propertyAssignment ( ',' propertyAssignment )*
     //  ;
-    //
-    // propertyAssignment
-    //  : propertyName ':' singleExpression
-    //  | getter '(' ')' '{' functionBody '}'
-    //  | setter '(' propertySetParameterList ')' '{' functionBody '}'
-    //  ;
-    //
-    // propertyName
-    //  : identifierName
-    //  | StringLiteral
-    //  | numericLiteral
-    //  ;
-    //
-    // propertySetParameterList
-    //  : Identifier
-    //  ;
     @Test
     public void propertyNameAndValueListTest() throws Exception {
 
@@ -486,21 +477,72 @@ public class ECMAScriptParserTest {
         this.test(new String[]{}, rule);
     }
 
+    // propertyAssignment
+    //  : propertyName ':' singleExpression
+    //  | getter '(' ')' '{' functionBody '}'
+    //  | setter '(' propertySetParameterList ')' '{' functionBody '}'
+    //  ;           
+    @Test
+    public void propertyAssignmentTest() throws Exception {
+
+        final String rule = "propertyAssignment";
+
+        this.test(new String[]{}, rule);
+    }
+
+    // propertyName
+    //  : identifierName
+    //  | StringLiteral
+    //  | numericLiteral
+    //  ;
+    @Test
+    public void propertyNameTest() throws Exception {
+
+        final String rule = "propertyName";
+
+        this.test(new String[]{}, rule);
+    }
+
+    // propertySetParameterList
+    //  : Identifier
+    //  ;
+    @Test
+    public void propertySetParameterListTest() throws Exception {
+
+        final String rule = "propertySetParameterList";
+
+        this.test(new String[]{}, rule);
+    }
+
     // arguments
     //  : '(' argumentList? ')'
-    //  ;
-    //
-    // argumentList
-    //  : singleExpression ( ',' singleExpression )*
-    //  ;
-    //
-    // expressionSequence
-    //  : singleExpression ( ',' singleExpression )*
     //  ;
     @Test
     public void argumentsTest() throws Exception {
 
         final String rule = "arguments";
+
+        this.test(new String[]{}, rule);
+    }
+
+    // argumentList
+    //  : singleExpression ( ',' singleExpression )*
+    //  ;
+    @Test
+    public void argumentListTest() throws Exception {
+
+        final String rule = "argumentList";
+
+        this.test(new String[]{}, rule);
+    }
+
+    // expressionSequence
+    //  : singleExpression ( ',' singleExpression )*
+    //  ;
+    @Test
+    public void expressionSequenceTest() throws Exception {
+
+        final String rule = "expressionSequence";
 
         this.test(new String[]{}, rule);
     }
