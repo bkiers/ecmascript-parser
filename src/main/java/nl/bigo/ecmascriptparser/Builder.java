@@ -4,12 +4,12 @@ import org.antlr.v4.runtime.ANTLRErrorListener;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 
-public final class ECMAScriptBuilder {
+public final class Builder {
 
     private static final DescriptiveBailErrorListener ERROR_LISTENER = new DescriptiveBailErrorListener();
 
     // No need to instantiate this class.
-    private ECMAScriptBuilder() {
+    private Builder() {
     }
 
     public static final class Lexer {

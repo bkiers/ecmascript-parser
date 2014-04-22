@@ -32,11 +32,11 @@ public class ECMAScriptParserTest {
     private void test(String source, String rule, boolean strictMode) throws Exception {
         try {
             // Create the lexer and parser.
-            ECMAScriptLexer lexer = new ECMAScriptBuilder.Lexer(source)
+            ECMAScriptLexer lexer = new Builder.Lexer(source)
                     .withStrictMode(strictMode)
                     .build();
 
-            ECMAScriptParser parser = new ECMAScriptBuilder.Parser(lexer).build();
+            ECMAScriptParser parser = new Builder.Parser(lexer).build();
 
             // Invoke the parser's rule.
             Method method = ECMAScriptParser.class.getDeclaredMethod(rule, new Class[]{});
