@@ -4,6 +4,10 @@ import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 
+/**
+ * An error listener that immediately bails out of the parse (does not recover)
+ * and throws a runtime exception with a descriptive error message.
+ */
 public class DescriptiveBailErrorListener extends BaseErrorListener {
 
     @Override
@@ -11,12 +15,9 @@ public class DescriptiveBailErrorListener extends BaseErrorListener {
                             int line, int charPositionInLine,
                             String msg, RecognitionException e) {
 
-        String sourceName = recognizer.getInputStream().getSourceName();
+        String entireMessage = String.format("source: %s, line: %s, index: %s, error message: %s",
+                recognizer.getInputStream().getSourceName(), line, charPositionInLine, msg);
 
-        if (sourceName != null && !sourceName.isEmpty()) {
-            sourceName = String.format("%s:%d:%d: ", sourceName, line, charPositionInLine);
-        }
-
-        throw new RuntimeException(sourceName + ", line " + line + ":" + charPositionInLine + " " + msg);
+        throw new RuntimeException(entireMessage);
     }
 }

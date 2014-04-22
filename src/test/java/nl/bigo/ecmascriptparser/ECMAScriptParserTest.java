@@ -38,14 +38,19 @@ public class ECMAScriptParserTest {
      *         the parser rule to invoke to get the `source` to be parsed.
      */
     private void test(String source, String rule, boolean strictMode) throws Exception {
-        ECMAScriptLexer lexer = new ECMAScriptLexer(new ANTLRInputStream(source));
-        lexer.setStrictMode(strictMode);
-        ECMAScriptParser parser = new ECMAScriptParser(new CommonTokenStream(lexer));
-        parser.addErrorListener(new DescriptiveBailErrorListener());
-        Method method = ECMAScriptParser.class.getDeclaredMethod(rule, new Class[]{});
-        ParserRuleContext context = (ParserRuleContext) method.invoke(parser);
-        assertThat(context, is(not(nullValue())));
-        parser.eof();
+        try {
+            ECMAScriptLexer lexer = new ECMAScriptLexer(new ANTLRInputStream(source));
+            lexer.setStrictMode(strictMode);
+            ECMAScriptParser parser = new ECMAScriptParser(new CommonTokenStream(lexer));
+            parser.addErrorListener(new DescriptiveBailErrorListener());
+            Method method = ECMAScriptParser.class.getDeclaredMethod(rule, new Class[]{});
+            ParserRuleContext context = (ParserRuleContext) method.invoke(parser);
+            assertThat(context, is(not(nullValue())));
+            parser.eof();
+        }
+        catch (Exception e) {
+            System.err.println("source = " + source);
+        }
     }
 
     // program
@@ -56,7 +61,13 @@ public class ECMAScriptParserTest {
 
         final String rule = "program";
 
-        this.test(new String[]{}, rule);
+        this.test(new String[]{
+                        "",
+                        "{}",
+                        ";;;;;"
+                },
+                rule
+        );
     }
 
     // sourceElements
@@ -67,7 +78,12 @@ public class ECMAScriptParserTest {
 
         final String rule = "sourceElements";
 
-        this.test(new String[]{}, rule);
+        this.test(new String[]{
+                        "var x = 1;",
+                        "foo()\n {;;;} mu[a][a*a][1][v_v][0](1,2,3)(null).xyz"
+                },
+                rule
+        );
     }
 
     // sourceElement
@@ -79,7 +95,12 @@ public class ECMAScriptParserTest {
 
         final String rule = "sourceElement";
 
-        this.test(new String[]{}, rule);
+        this.test(new String[]{
+                        "var sum = add(1,2,3)\n",
+                        "function add(a,b,c) { return a+b+c }"
+                },
+                rule
+        );
     }
 
     // statement
@@ -104,7 +125,25 @@ public class ECMAScriptParserTest {
 
         final String rule = "statement";
 
-        this.test(new String[]{}, rule);
+        this.test(new String[]{
+                        "{}",
+                        "var x = mu;",
+                        ";",
+                        "foo(), log(error)",
+                        "if (true) { /* ... */ } else if(x) { /* ... */ } else { /* ... */ } ",
+                        "for (;;) { /* ... */ }",
+                        "continue;",
+                        "break\n",
+                        "return null;",
+                        "with (x) { /* ... */ }",
+                        "x : { /* ... */ }",
+                        "switch (x) { /* ... */ }",
+                        "throw 'message'\n",
+                        "try { /* ... */ } catch (e) { /* ... */ }",
+                        "debugger\n",
+                },
+                rule
+        );
     }
 
     // block
@@ -115,7 +154,12 @@ public class ECMAScriptParserTest {
 
         final String rule = "block";
 
-        this.test(new String[]{}, rule);
+        this.test(new String[]{
+                        "{}",
+                        "{print();log()\nfoo(1,2,3)}"
+                },
+                rule
+        );
     }
 
     // statementList
@@ -126,7 +170,11 @@ public class ECMAScriptParserTest {
 
         final String rule = "statementList";
 
-        this.test(new String[]{}, rule);
+        this.test(new String[]{
+                        "print('1'); for(;;){}\n{/pattern/i.match('PATTERN')}console.log('mu')",
+                },
+                rule
+        );
     }
 
     // variableStatement
@@ -137,7 +185,12 @@ public class ECMAScriptParserTest {
 
         final String rule = "variableStatement";
 
-        this.test(new String[]{}, rule);
+        this.test(new String[]{
+                        "var x = null;",
+                        "var x = y, z = 1234567/876543/1234556\n"
+                },
+                rule
+        );
     }
 
     // variableDeclarationList
@@ -148,7 +201,12 @@ public class ECMAScriptParserTest {
 
         final String rule = "variableDeclarationList";
 
-        this.test(new String[]{}, rule);
+        this.test(new String[]{
+                        "a=b",
+                        "a=1,b=(2)/(((4))),c=/3/m"
+                },
+                rule
+        );
     }
 
     // variableDeclaration
@@ -159,7 +217,12 @@ public class ECMAScriptParserTest {
 
         final String rule = "variableDeclaration";
 
-        this.test(new String[]{}, rule);
+        this.test(new String[]{
+                        "a = 21",
+                        "ID=1/1==3||5-(40000000000000000000)"
+                },
+                rule
+        );
     }
 
     // initialiser
@@ -170,7 +233,7 @@ public class ECMAScriptParserTest {
 
         final String rule = "initialiser";
 
-        this.test(new String[]{}, rule);
+        this.test(new String[]{ "= true", "= 1+2+9*122/foo[x]" }, rule);
     }
 
     // emptyStatement
@@ -181,7 +244,7 @@ public class ECMAScriptParserTest {
 
         final String rule = "emptyStatement";
 
-        this.test(new String[]{}, rule);
+        this.test(new String[]{ ";" }, rule);
     }
 
     // expressionStatement
@@ -192,7 +255,12 @@ public class ECMAScriptParserTest {
 
         final String rule = "expressionStatement";
 
-        this.test(new String[]{}, rule);
+        this.test(new String[]{
+                        "1",
+                        "true, false, null, array[0+12*58/111111], f(1,2,3)",
+                },
+                rule
+        );
     }
 
     // ifStatement
@@ -203,7 +271,14 @@ public class ECMAScriptParserTest {
 
         final String rule = "ifStatement";
 
-        this.test(new String[]{}, rule);
+        this.test(new String[]{
+                        "if (true || false) { /* ... */ }",
+                        "if (true || false) { /* ... */ } else if (x) { /* ... */ }",
+                        "if (true || false) { /* ... */ } else { /* ... */ }",
+                        "if (true || false) { /* ... } else if (1 < 2) { /* ... */ } else { /* ... */ }",
+                },
+                rule
+        );
     }
 
     // iterationStatement
@@ -219,7 +294,17 @@ public class ECMAScriptParserTest {
 
         final String rule = "iterationStatement";
 
-        this.test(new String[]{}, rule);
+        this.test(new String[]{
+                        "do { /* statement/block */ } while(true);",
+                        "do { /* statement/block */ } while(true)\n",
+                        "while (1,foo,null) { /* statement/block */ }",
+                        "for (;;) { /* statement/block */ }",
+                        "for (var i = 0; i < x; ++i) { /* statement/block */ }",
+                        "for (item in array) { /* statement/block */ }",
+                        "for (var a in []) { /* statement/block */ }",
+                },
+                rule
+        );
     }
 
     // continueStatement
@@ -230,7 +315,11 @@ public class ECMAScriptParserTest {
 
         final String rule = "continueStatement";
 
-        this.test(new String[]{}, rule);
+        this.test(new String[]{
+                        "continue something;", "continue now\n", "continue"
+                },
+                rule
+        );
     }
 
     // breakStatement
@@ -241,7 +330,11 @@ public class ECMAScriptParserTest {
 
         final String rule = "breakStatement";
 
-        this.test(new String[]{}, rule);
+        this.test(new String[]{
+                        "break something;", "break now\n", "break"
+                },
+                rule
+        );
     }
 
     // returnStatement
@@ -252,7 +345,11 @@ public class ECMAScriptParserTest {
 
         final String rule = "returnStatement";
 
-        this.test(new String[]{}, rule);
+        this.test(new String[]{
+                        "return something;", "return 1+2*3\n", "return"
+                },
+                rule
+        );
     }
 
     // withStatement
@@ -263,7 +360,12 @@ public class ECMAScriptParserTest {
 
         final String rule = "withStatement";
 
-        this.test(new String[]{}, rule);
+        this.test(new String[]{
+                        "with(1,2,3){}",
+                        "with (x) throw 'error'",
+                },
+                rule
+        );
     }
 
     // switchStatement
@@ -274,7 +376,7 @@ public class ECMAScriptParserTest {
 
         final String rule = "switchStatement";
 
-        this.test(new String[]{}, rule);
+        this.test(new String[]{ "switch (variable) { /* caseBlock */ }" }, rule);
     }
 
     // caseBlock
@@ -285,7 +387,7 @@ public class ECMAScriptParserTest {
 
         final String rule = "caseBlock";
 
-        this.test(new String[]{}, rule);
+        this.test(new String[]{ "{ /* caseClauses ... */  }" }, rule);
     }
 
     // caseClauses
@@ -296,7 +398,12 @@ public class ECMAScriptParserTest {
 
         final String rule = "caseClauses";
 
-        this.test(new String[]{}, rule);
+        this.test(new String[]{
+                        "case 1: break;",
+                        "case foo: doSomething(); break; case mu: case bu: break;"
+                },
+                rule
+        );
     }
 
     // caseClause
@@ -307,7 +414,12 @@ public class ECMAScriptParserTest {
 
         final String rule = "caseClause";
 
-        this.test(new String[]{}, rule);
+        this.test(new String[]{
+                        "case 1:",
+                        "case foo: doSomething(); break;"
+                },
+                rule
+        );
     }
 
     // defaultClause
@@ -318,7 +430,12 @@ public class ECMAScriptParserTest {
 
         final String rule = "defaultClause";
 
-        this.test(new String[]{}, rule);
+        this.test(new String[]{
+                        "default:",
+                        "default: mu(); break;"
+                },
+                rule
+        );
     }
 
     // labelledStatement
@@ -329,7 +446,7 @@ public class ECMAScriptParserTest {
 
         final String rule = "labelledStatement";
 
-        this.test(new String[]{}, rule);
+        this.test(new String[]{ "label: error()" }, rule);
     }
 
     // throwStatement
@@ -340,7 +457,12 @@ public class ECMAScriptParserTest {
 
         final String rule = "throwStatement";
 
-        this.test(new String[]{}, rule);
+        this.test(new String[]{
+                        "throw 'err';",
+                        "throw 'another-err', null, false\n"
+                },
+                rule
+        );
     }
 
     // tryStatement
@@ -353,7 +475,13 @@ public class ECMAScriptParserTest {
 
         final String rule = "tryStatement";
 
-        this.test(new String[]{}, rule);
+        this.test(new String[]{
+                        "try { /* block */ } catch (error) { /* block */ }",
+                        "try { /* block */ } finally { /* block */ }",
+                        "try { /* block */ } catch (error) { /* block */ } finally { /* block */ }"
+                },
+                rule
+        );
     }
 
     // catchProduction
@@ -364,7 +492,7 @@ public class ECMAScriptParserTest {
 
         final String rule = "catchProduction";
 
-        this.test(new String[]{}, rule);
+        this.test(new String[]{ "catch (error) { /* block */ }" }, rule);
     }
 
     // finallyProduction
@@ -375,7 +503,7 @@ public class ECMAScriptParserTest {
 
         final String rule = "finallyProduction";
 
-        this.test(new String[]{}, rule);
+        this.test(new String[]{ "finally { /* block */ }" }, rule);
     }
 
     // debuggerStatement
@@ -386,7 +514,7 @@ public class ECMAScriptParserTest {
 
         final String rule = "debuggerStatement";
 
-        this.test(new String[]{}, rule);
+        this.test(new String[]{ "debugger;", "debugger" }, rule);
     }
 
     // functionDeclaration
@@ -397,7 +525,12 @@ public class ECMAScriptParserTest {
 
         final String rule = "functionDeclaration";
 
-        this.test(new String[]{}, rule);
+        this.test(new String[]{
+                        "function foo () { /* functionBody */ }",
+                        "function mu (a, b, c) { /* functionBody */ }"
+                },
+                rule
+        );
     }
 
     // formalParameterList
@@ -408,7 +541,7 @@ public class ECMAScriptParserTest {
 
         final String rule = "formalParameterList";
 
-        this.test(new String[]{}, rule);
+        this.test(new String[]{ "a", "a, b, c" }, rule);
     }
 
     // functionBody
@@ -419,7 +552,7 @@ public class ECMAScriptParserTest {
 
         final String rule = "functionBody";
 
-        this.test(new String[]{}, rule);
+        this.test(new String[]{ "", "expr(); throw 'something';" }, rule);
     }
 
     // arrayLiteral
@@ -430,7 +563,7 @@ public class ECMAScriptParserTest {
 
         final String rule = "arrayLiteral";
 
-        this.test(new String[]{}, rule);
+        this.test(new String[]{ "[]", "[1, 2 ,3]", "[,,,1,,2,,,3,,,,]", "[,,,,,,,]" }, rule);
     }
 
     // elementList
@@ -441,7 +574,7 @@ public class ECMAScriptParserTest {
 
         final String rule = "elementList";
 
-        this.test(new String[]{}, rule);
+        this.test(new String[]{ "1, 2, 3", ",,,1,,2,,,3" }, rule);
     }
 
     // elision
@@ -452,7 +585,7 @@ public class ECMAScriptParserTest {
 
         final String rule = "elision";
 
-        this.test(new String[]{}, rule);
+        this.test(new String[]{ ",", ",,,,,,," }, rule);
     }
 
     // objectLiteral
@@ -463,7 +596,15 @@ public class ECMAScriptParserTest {
 
         final String rule = "objectLiteral";
 
-        this.test(new String[]{}, rule);
+        this.test(new String[]{
+                        "{}",
+                        "{a:1, b:2}",
+                        "{a:1, b:2,}",
+                        "{,}",
+                        "{ getMu(){}, setMu(mu){} }"
+                },
+                rule
+        );
     }
 
     // propertyNameAndValueList
@@ -474,20 +615,35 @@ public class ECMAScriptParserTest {
 
         final String rule = "propertyNameAndValueList";
 
-        this.test(new String[]{}, rule);
+        this.test(new String[]{
+                        "a:b",
+                        "c:'ddd', 'foo':true, 1:null"
+                },
+                rule
+        );
     }
 
     // propertyAssignment
     //  : propertyName ':' singleExpression
     //  | getter '(' ')' '{' functionBody '}'
     //  | setter '(' propertySetParameterList ')' '{' functionBody '}'
-    //  ;           
+    //  ;
     @Test
     public void propertyAssignmentTest() throws Exception {
 
         final String rule = "propertyAssignment";
 
-        this.test(new String[]{}, rule);
+        this.test(new String[]{
+                        "mu : null",
+                        "'mu' : null",
+                        "\"mu\" : null",
+                        "1 : null",
+                        "0xff : null",
+                        "getMu(){}",
+                        "setMu(mu){}",
+                },
+                rule
+        );
     }
 
     // propertyName
@@ -500,7 +656,7 @@ public class ECMAScriptParserTest {
 
         final String rule = "propertyName";
 
-        this.test(new String[]{}, rule);
+        this.test(new String[]{ "mu", "'mu'", "\"mu\"", "42", "0Xabc" }, rule);
     }
 
     // propertySetParameterList
@@ -511,7 +667,7 @@ public class ECMAScriptParserTest {
 
         final String rule = "propertySetParameterList";
 
-        this.test(new String[]{}, rule);
+        this.test(new String[]{ "mu" }, rule);
     }
 
     // arguments
@@ -522,7 +678,12 @@ public class ECMAScriptParserTest {
 
         final String rule = "arguments";
 
-        this.test(new String[]{}, rule);
+        this.test(new String[]{
+                        "()",
+                        "( 1+2, b/3, /./mi )"
+                },
+                rule
+        );
     }
 
     // argumentList
@@ -533,7 +694,11 @@ public class ECMAScriptParserTest {
 
         final String rule = "argumentList";
 
-        this.test(new String[]{}, rule);
+        this.test(new String[]{
+                        "a", "1+2", "a,b   ,   c"
+                },
+                rule
+        );
     }
 
     // expressionSequence
@@ -544,7 +709,7 @@ public class ECMAScriptParserTest {
 
         final String rule = "expressionSequence";
 
-        this.test(new String[]{}, rule);
+        this.test(new String[]{ "1, 2*3, mu, foo(), bar[0*0]" }, rule);
     }
 
     // singleExpression
@@ -618,6 +783,9 @@ public class ECMAScriptParserTest {
         test("a |= b", rule);
 
         test("a ? b : c", rule);
+
+        test("value = 42", rule);
+        test("a = 1+2, 3, b", rule);
 
         test("a || b", rule);
         test("a && b", rule);
