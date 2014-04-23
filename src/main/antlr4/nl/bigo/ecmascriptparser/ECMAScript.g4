@@ -73,13 +73,14 @@ grammar ECMAScript;
         int possibleIndexEosToken = this.getCurrentToken().getTokenIndex() - 1;
         Token ahead = _input.get(possibleIndexEosToken);
 
+        if (ahead.getChannel() != Lexer.HIDDEN) {
+            // We're only interested in tokens on the HIDDEN channel.
+            return false;
+        }
+
         // Get the token's text and type.
         String text = ahead.getText();
         int type = ahead.getType();
-
-        if (ahead.getChannel() != Lexer.HIDDEN) {
-            return false;
-        }
 
         // Check if the token is, or contains a line terminator.
         return (type == MultiLineComment && (text.contains("\r") || text.contains("\n"))) ||
@@ -126,10 +127,15 @@ grammar ECMAScript;
      */
     @Override
     public Token nextToken() {
+        
+        // Get the next token.
         Token next = super.nextToken();
+        
         if (next.getChannel() == Token.DEFAULT_CHANNEL) {
-            lastToken = next;
+            // Keep track of the last token on the default channel.                                              
+            this.lastToken = next;
         }
+        
         return next;
     }
 
@@ -139,11 +145,13 @@ grammar ECMAScript;
      * @return {@code true} iff the lexer can match a regex literal.
      */
     private boolean isRegexPossible() {
+                                       
         if (this.lastToken == null) {
             // No token has been produced yet: at the start of the input,
             // no division is possible, so a regex literal _is_ possible.
             return true;
         }
+        
         switch (this.lastToken.getType()) {
             case Identifier:
             case NullLiteral:
