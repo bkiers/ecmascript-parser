@@ -1,4 +1,4 @@
-# ECMAScript parser
+# ECMAScript parser &nbsp; [![Build Status](https://travis-ci.org/bkiers/ecmascript-parser.png)](https://travis-ci.org/bkiers/ecmascript-parser)
 
 An ANTLR4 grammar for ECMAScript based on the
 [Standard ECMA-262 5.1 Edition from June 2011](http://www.ecma-international.org/ecma-262/5.1).
