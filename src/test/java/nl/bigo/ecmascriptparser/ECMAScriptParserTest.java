@@ -602,7 +602,7 @@ public class ECMAScriptParserTest {
                         "{a:1, b:2}",
                         "{a:1, b:2,}",
                         "{,}",
-                        "{ getMu(){}, setMu(mu){} }"
+                        "{ get mu(){}, set mu(mu){} }"
                 },
                 rule
         );
@@ -640,8 +640,8 @@ public class ECMAScriptParserTest {
                         "\"mu\" : null",
                         "1 : null",
                         "0xff : null",
-                        "getMu(){}",
-                        "setMu(mu){}",
+                        "get mu(){}",
+                        "set mu(mu){}",
                 },
                 rule
         );
@@ -1043,7 +1043,7 @@ public class ECMAScriptParserTest {
 
         final String rule = "getter";
 
-        this.test("getSomething", rule);
+        this.test("get something", rule);
     }
 
     // setter
@@ -1054,7 +1054,7 @@ public class ECMAScriptParserTest {
 
         final String rule = "setter";
 
-        this.test("setSomething", rule);
+        this.test("set something", rule);
     }
 }
 
