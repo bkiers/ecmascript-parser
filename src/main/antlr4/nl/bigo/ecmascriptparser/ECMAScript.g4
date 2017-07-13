@@ -31,7 +31,7 @@
 grammar ECMAScript;
 
 @parser::members {
-  
+
     /**
      * Returns {@code true} iff on the current index of the parser's
      * token stream a token of the given {@code type} exists on the
@@ -85,11 +85,11 @@ grammar ECMAScript;
         // Check if the token is, or contains a line terminator.
         return (type == MultiLineComment && (text.contains("\r") || text.contains("\n"))) ||
                 (type == LineTerminator);
-    }                                
+    }
 }
 
 @lexer::members {
-                 
+
     // A flag indicating if the lexer should operate in strict mode.
     // When set to true, FutureReservedWords are tokenized, when false,
     // an octal literal can be tokenized.
@@ -127,15 +127,15 @@ grammar ECMAScript;
      */
     @Override
     public Token nextToken() {
-        
+
         // Get the next token.
         Token next = super.nextToken();
-        
+
         if (next.getChannel() == Token.DEFAULT_CHANNEL) {
-            // Keep track of the last token on the default channel.                                              
+            // Keep track of the last token on the default channel.
             this.lastToken = next;
         }
-        
+
         return next;
     }
 
@@ -145,13 +145,13 @@ grammar ECMAScript;
      * @return {@code true} iff the lexer can match a regex literal.
      */
     private boolean isRegexPossible() {
-                                       
+
         if (this.lastToken == null) {
             // No token has been produced yet: at the start of the input,
             // no division is possible, so a regex literal _is_ possible.
             return true;
         }
-        
+
         switch (this.lastToken.getType()) {
             case Identifier:
             case NullLiteral:
@@ -163,6 +163,8 @@ grammar ECMAScript;
             case DecimalLiteral:
             case HexIntegerLiteral:
             case StringLiteral:
+            case PlusPlus:
+            case MinusMinus:  
                 // After any of the tokens above, no regex literal can follow.
                 return false;
             default:
@@ -417,7 +419,7 @@ formalParameterList
 functionBody
  : sourceElements?
  ;
-    
+
 /// ArrayLiteral :
 ///     [ Elision? ]
 ///     [ ElementList ]
@@ -454,7 +456,7 @@ objectLiteral
 propertyNameAndValueList
  : propertyAssignment ( ',' propertyAssignment )*
  ;
-    
+
 /// PropertyAssignment :
 ///     PropertyName : AssignmentExpression
 ///     get PropertyName ( ) { FunctionBody }
@@ -463,8 +465,8 @@ propertyAssignment
  : propertyName ':' singleExpression                            # PropertyExpressionAssignment
  | getter '(' ')' '{' functionBody '}'                          # PropertyGetter
  | setter '(' propertySetParameterList ')' '{' functionBody '}' # PropertySetter
- ;           
-    
+ ;
+
 /// PropertyName :
 ///     IdentifierName
 ///     StringLiteral
@@ -474,7 +476,7 @@ propertyName
  | StringLiteral
  | numericLiteral
  ;
-    
+
 /// PropertySetParameterList :
 ///     Identifier
 propertySetParameterList
@@ -487,14 +489,14 @@ propertySetParameterList
 arguments
  : '(' argumentList? ')'
  ;
-    
+
 /// ArgumentList :
 ///     AssignmentExpression
 ///     ArgumentList , AssignmentExpression
 argumentList
  : singleExpression ( ',' singleExpression )*
  ;
-    
+
 /// Expression :
 ///     AssignmentExpression
 ///     Expression , AssignmentExpression
@@ -541,7 +543,7 @@ argumentList
 ///     RelationalExpression > ShiftExpression
 ///     RelationalExpression <= ShiftExpression
 ///     RelationalExpression >= ShiftExpression
-///     RelationalExpression instanceof ShiftExpression 
+///     RelationalExpression instanceof ShiftExpression
 ///     RelationalExpression in ShiftExpression
 ///
 /// ShiftExpression :
@@ -549,7 +551,7 @@ argumentList
 ///     ShiftExpression << AdditiveExpression
 ///     ShiftExpression >> AdditiveExpression
 ///     ShiftExpression >>> AdditiveExpression
-/// 
+///
 /// AdditiveExpression :
 ///     MultiplicativeExpression
 ///     AdditiveExpression + MultiplicativeExpression
@@ -657,21 +659,21 @@ singleExpression
 /// AssignmentOperator : one of
 ///     *=	/=	%=	+=	-=	<<=	>>=	>>>=	&=	^=	|=
 assignmentOperator
- : '*=' 
- | '/=' 
- | '%=' 
- | '+=' 
- | '-=' 
- | '<<=' 
- | '>>=' 
- | '>>>=' 
- | '&=' 
- | '^=' 
+ : '*='
+ | '/='
+ | '%='
+ | '+='
+ | '-='
+ | '<<='
+ | '>>='
+ | '>>>='
+ | '&='
+ | '^='
  | '|='
  ;
 
 literal
- : ( NullLiteral 
+ : ( NullLiteral
    | BooleanLiteral
    | StringLiteral
    | RegularExpressionLiteral
@@ -814,15 +816,15 @@ BitOr                      : '|';
 And                        : '&&';
 Or                         : '||';
 MultiplyAssign             : '*=';
-DivideAssign               : '/='; 
-ModulusAssign              : '%='; 
-PlusAssign                 : '+='; 
-MinusAssign                : '-='; 
-LeftShiftArithmeticAssign  : '<<='; 
-RightShiftArithmeticAssign : '>>='; 
-RightShiftLogicalAssign    : '>>>='; 
-BitAndAssign               : '&='; 
-BitXorAssign               : '^='; 
+DivideAssign               : '/=';
+ModulusAssign              : '%=';
+PlusAssign                 : '+=';
+MinusAssign                : '-=';
+LeftShiftArithmeticAssign  : '<<=';
+RightShiftArithmeticAssign : '>>=';
+RightShiftLogicalAssign    : '>>>=';
+BitAndAssign               : '&=';
+BitXorAssign               : '^=';
 BitOrAssign                : '|=';
 
 /// 7.8.1 Null Literals
@@ -889,8 +891,8 @@ Const   : 'const';
 Export  : 'export';
 Import  : 'import';
 
-/// The following tokens are also considered to be FutureReservedWords 
-/// when parsing strict mode  
+/// The following tokens are also considered to be FutureReservedWords
+/// when parsing strict mode
 Implements : {strictMode}? 'implements';
 Let        : {strictMode}? 'let';
 Private    : {strictMode}? 'private';
@@ -976,7 +978,7 @@ fragment EscapeCharacter
  ;
 
 fragment LineContinuation
- : '\\' LineTerminatorSequence 
+ : '\\' LineTerminatorSequence
  ;
 
 fragment LineTerminatorSequence
@@ -1291,7 +1293,7 @@ fragment UnicodeCombiningMark
  | [\u0591-\u05A1]
  | [\u05A3-\u05B9]
  | [\u05BB-\u05BD]
- | [\u05BF] 
+ | [\u05BF]
  | [\u05C1-\u05C2]
  | [\u05C4]
  | [\u064B-\u0655]
@@ -1476,7 +1478,7 @@ fragment RegularExpressionNonTerminator
 fragment RegularExpressionBackslashSequence
  : '\\' RegularExpressionNonTerminator
  ;
- 
+
 /// RegularExpressionClass ::
 ///     [ RegularExpressionClassChars ]
 ///
@@ -1486,7 +1488,7 @@ fragment RegularExpressionBackslashSequence
 fragment RegularExpressionClass
   : '[' RegularExpressionClassChar* ']'
   ;
- 
+
 /// RegularExpressionClassChar ::
 ///     RegularExpressionNonTerminator but not ] or \
 ///     RegularExpressionBackslashSequence
